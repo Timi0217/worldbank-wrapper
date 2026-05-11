@@ -257,11 +257,13 @@ hr.dv{border:none;border-top:1px solid rgba(255,255,255,.06);margin:18px 0}
 function fmt(n){if(n==null)return'--';if(n>=1e12)return'$'+(n/1e12).toFixed(1)+'T';if(n>=1e9)return(n/1e9).toFixed(1)+'B';if(n>=1e6)return(n/1e6).toFixed(1)+'M';return n.toLocaleString('en-US',{maximumFractionDigits:1})}
 async function init(){
  const t0=Date.now();
- try{await fetch('/health');const ms=Date.now()-t0;document.getElementById('dot').classList.add('on');document.getElementById('stx').textContent='online \\u00B7 '+ms+'ms'}catch(e){document.getElementById('stx').textContent='offline'}
- try{const d=await fetch('/indicator?country=world&name=gdp').then(r=>r.json());
-  if(d.observations&&d.observations.length){const v=parseFloat(d.observations[0].value);document.getElementById('gdp').innerHTML=fmt(v)}}catch(e){document.getElementById('gdp').textContent='--'}
- try{const d=await fetch('/indicator?country=world&name=population').then(r=>r.json());
-  if(d.observations&&d.observations.length){const v=parseFloat(d.observations[0].value);document.getElementById('pop').textContent=fmt(v)}}catch(e){document.getElementById('pop').textContent='--'}
+ try{const d=await fetch('/dashboard').then(r=>r.json());
+  const ms=Date.now()-t0;
+  document.getElementById('dot').classList.add('on');
+  document.getElementById('stx').textContent='online \\u00B7 '+ms+'ms';
+  if(d.gdp&&d.gdp.value){document.getElementById('gdp').innerHTML=fmt(parseFloat(d.gdp.value))}else{document.getElementById('gdp').textContent='--'}
+  if(d.population&&d.population.value){document.getElementById('pop').textContent=fmt(parseFloat(d.population.value))}else{document.getElementById('pop').textContent='--'}
+ }catch(e){document.getElementById('stx').textContent='offline';document.getElementById('gdp').textContent='--';document.getElementById('pop').textContent='--'}
 }
 function ts(c,i){document.getElementById('country').value=c;document.getElementById('indicator').value=i;fetchD()}
 function fmtVal(v){if(v==null)return'--';const n=parseFloat(v);if(isNaN(n))return v;if(Math.abs(n)>=1e12)return(n/1e12).toFixed(2)+'T';if(Math.abs(n)>=1e9)return(n/1e9).toFixed(2)+'B';if(Math.abs(n)>=1e6)return(n/1e6).toFixed(1)+'M';if(Math.abs(n)>=1e3)return n.toLocaleString('en-US',{maximumFractionDigits:2});return n.toFixed(2)}
@@ -318,6 +320,68 @@ async def root():
 @app.get("/health")
 async def health():
     return {"status": "healthy", "timestamp": _ts()}
+
+
+@app.get("/dashboard")
+async def dashboard():
+    """
+    Get all homepage data in a single request (health check, global GDP, world population).
+    This endpoint aggregates multiple API calls server-side with small delays between them.
+    """
+    import asyncio
+
+    result = {
+        "health": {"status": "healthy", "timestamp": _ts()},
+        "gdp": None,
+        "population": None,
+    }
+
+    # Add small delay for health check simulation
+    await asyncio.sleep(0.05)
+
+    # Fetch global GDP
+    try:
+        current_year = datetime.now(timezone.utc).year
+        date_range = f"{current_year - 10}:{current_year}"
+        gdp_data = await _wb_get(
+            "/country/WLD/indicator/NY.GDP.MKTP.CD",
+            params={"date": date_range},
+        )
+        if gdp_data:
+            for item in gdp_data:
+                if item.get("value") is not None:
+                    result["gdp"] = {
+                        "value": item["value"],
+                        "year": item.get("date"),
+                    }
+                    break
+    except Exception:
+        pass
+
+    # Small delay between requests
+    await asyncio.sleep(0.05)
+
+    # Fetch world population
+    try:
+        current_year = datetime.now(timezone.utc).year
+        date_range = f"{current_year - 10}:{current_year}"
+        pop_data = await _wb_get(
+            "/country/WLD/indicator/SP.POP.TOTL",
+            params={"date": date_range},
+        )
+        if pop_data:
+            for item in pop_data:
+                if item.get("value") is not None:
+                    result["population"] = {
+                        "value": item["value"],
+                        "year": item.get("date"),
+                    }
+                    break
+    except Exception:
+        pass
+
+    result["timestamp"] = _ts()
+    return result
 
 
 @app.get("/indicator")
