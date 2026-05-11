@@ -290,7 +290,7 @@ function renderIndicator(d){
   +'</div>'
   +'<div style="font-size:12px;color:#666;margin-bottom:8px">'+d.country_code+' &middot; '+(d.indicator_code||'')+'</div>'
   +'<table class="res-tbl"><thead><tr><th>Year</th><th></th><th style="text-align:right">Value</th></tr></thead><tbody>'+rows+'</tbody></table>'
-  +'<div class="toggle-raw" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===\'none\'?\'block\':\'none\'">Show raw JSON</div>'
+  +'<div class="toggle-raw" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===\\x27none\\x27?\\x27block\\x27:\\x27none\\x27">Show raw JSON</div>'
   +'<div class="raw-json">'+JSON.stringify(d,null,2)+'</div>'
   +'</div>';
 }
