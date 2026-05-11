@@ -215,7 +215,22 @@ hr.dv{border:none;border-top:1px solid rgba(255,255,255,.06);margin:18px 0}
 .bt{background:#009FDA;color:#fff;border:none;border-radius:10px;padding:13px 18px;font-weight:700;font-size:14px;cursor:pointer;font-family:'Courier New',monospace;white-space:nowrap;transition:opacity .15s}
 .bt:hover{opacity:.85}
 .try{color:#555;font-size:12px;margin-top:4px}.try a{color:#666;text-decoration:none;cursor:pointer;transition:color .15s}.try a:hover{color:#009FDA}
-#res{margin-top:14px;padding:14px 16px;background:rgba(0,159,218,.06);border:1px solid rgba(0,159,218,.15);border-radius:10px;display:none;font-family:'Courier New',monospace;font-size:13px;line-height:1.6;white-space:pre-wrap;word-break:break-all;max-height:400px;overflow-y:auto}
+#res{margin-top:14px;display:none}
+.res-ui{padding:16px 18px;background:rgba(0,159,218,.06);border:1px solid rgba(0,159,218,.15);border-radius:10px}
+.res-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.res-title{font-size:16px;font-weight:700;color:#fff}
+.res-sub{font-size:12px;color:#009FDA;font-family:'Courier New',monospace}
+.res-tbl{width:100%;border-collapse:collapse}
+.res-tbl th{text-align:left;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.08)}
+.res-tbl td{padding:8px 0;font-family:'Courier New',monospace;font-size:14px;border-bottom:1px solid rgba(255,255,255,.04)}
+.res-tbl td:last-child{text-align:right;font-weight:600;color:#009FDA}
+.res-tbl tr:last-child td{border-bottom:none}
+.bar-wrap{display:flex;align-items:center;gap:8px}
+.bar{height:6px;border-radius:3px;background:rgba(0,159,218,.3);flex-shrink:0}
+.bar-pos{background:rgba(0,159,218,.6)}.bar-neg{background:rgba(255,68,68,.4)}
+.toggle-raw{margin-top:12px;font-size:12px;color:#666;cursor:pointer;user-select:none;transition:color .15s}
+.toggle-raw:hover{color:#009FDA}
+.raw-json{margin-top:8px;padding:12px;background:rgba(0,0,0,.3);border-radius:8px;font-family:'Courier New',monospace;font-size:11px;line-height:1.5;white-space:pre-wrap;word-break:break-all;max-height:300px;overflow-y:auto;color:#888;display:none}
 @keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 @media(max-width:480px){.stats{grid-template-columns:1fr}.w{padding:20px}.fm{flex-direction:column}}
 </style>
@@ -249,14 +264,44 @@ async function init(){
   if(d.observations&&d.observations.length){const v=parseFloat(d.observations[0].value);document.getElementById('pop').textContent=fmt(v)}}catch(e){document.getElementById('pop').textContent='--'}
 }
 function ts(c,i){document.getElementById('country').value=c;document.getElementById('indicator').value=i;fetchD()}
+function fmtVal(v){if(v==null)return'--';const n=parseFloat(v);if(isNaN(n))return v;if(Math.abs(n)>=1e12)return(n/1e12).toFixed(2)+'T';if(Math.abs(n)>=1e9)return(n/1e9).toFixed(2)+'B';if(Math.abs(n)>=1e6)return(n/1e6).toFixed(1)+'M';if(Math.abs(n)>=1e3)return n.toLocaleString('en-US',{maximumFractionDigits:2});return n.toFixed(2)}
+function renderIndicator(d){
+ const obs=d.observations||[];if(!obs.length)return'<div class="res-ui"><div style="color:#888;text-align:center;padding:20px">No data available</div></div>';
+ const vals=obs.map(o=>parseFloat(o.value)).filter(v=>!isNaN(v));
+ const maxAbs=Math.max(...vals.map(v=>Math.abs(v)),1);
+ const minVal=Math.min(...vals);const maxVal=Math.max(...vals);
+ const latest=vals[0];const prev=vals.length>1?vals[1]:null;
+ const chg=prev!=null&&prev!==0?((latest-prev)/Math.abs(prev)*100):null;
+ const chgStr=chg!=null?((chg>=0?'+':'')+chg.toFixed(1)+'%'):'';
+ const chgCls=chg!=null?(chg>=0?'color:#4CAF50':'color:#ef5350'):'color:#888';
+ let rows='';
+ obs.forEach(o=>{
+  const v=parseFloat(o.value);const pct=Math.min(Math.abs(v)/maxAbs*120,120);
+  const cls=v>=0?'bar-pos':'bar-neg';
+  rows+='<tr><td>'+o.year+'</td><td><div class="bar-wrap"><div class="bar '+cls+'" style="width:'+pct+'px"></div></div></td><td>'+fmtVal(o.value)+'</td></tr>';
+ });
+ const latestStr=obs[0]?fmtVal(obs[0].value):'--';
+ return '<div class="res-ui">'
+  +'<div class="res-hd"><div><div class="res-title">'+(d.country||'')+'</div><div class="res-sub">'+(d.indicator||d.indicator_code||'')+'</div></div><div style="text-align:right"><div style="font-family:Courier New,monospace;font-size:28px;font-weight:700;color:#fff">'+latestStr+'</div><div style="font-size:11px;color:#666">'+(obs[0]?obs[0].year:'')+(chgStr?' &middot; <span style="'+chgCls+'">'+chgStr+' YoY</span>':'')+'</div></div></div>'
+  +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px">'
+  +'<div style="background:rgba(0,159,218,.08);border-radius:8px;padding:10px 12px;text-align:center"><div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Range High</div><div style="font-family:Courier New,monospace;font-size:16px;font-weight:700;color:#4CAF50">'+fmtVal(maxVal)+'</div></div>'
+  +'<div style="background:rgba(0,159,218,.08);border-radius:8px;padding:10px 12px;text-align:center"><div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Range Low</div><div style="font-family:Courier New,monospace;font-size:16px;font-weight:700;color:#ef5350">'+fmtVal(minVal)+'</div></div>'
+  +'<div style="background:rgba(0,159,218,.08);border-radius:8px;padding:10px 12px;text-align:center"><div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Data Points</div><div style="font-family:Courier New,monospace;font-size:16px;font-weight:700;color:#009FDA">'+d.count+'</div></div>'
+  +'</div>'
+  +'<div style="font-size:12px;color:#666;margin-bottom:8px">'+d.country_code+' &middot; '+(d.indicator_code||'')+'</div>'
+  +'<table class="res-tbl"><thead><tr><th>Year</th><th></th><th style="text-align:right">Value</th></tr></thead><tbody>'+rows+'</tbody></table>'
+  +'<div class="toggle-raw" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===\'none\'?\'block\':\'none\'">Show raw JSON</div>'
+  +'<div class="raw-json">'+JSON.stringify(d,null,2)+'</div>'
+  +'</div>';
+}
 async function fetchD(){
  const c=document.getElementById('country').value.trim();
  const i=document.getElementById('indicator').value.trim();
  if(!c||!i)return;
- const res=document.getElementById('res');res.style.display='block';res.textContent='Fetching '+i+' for '+c+'...';
+ const res=document.getElementById('res');res.style.display='block';res.innerHTML='<div class="res-ui" style="color:#888;text-align:center;padding:20px">Fetching '+i+' for '+c+'...</div>';
  try{const d=await fetch('/indicator?country='+encodeURIComponent(c)+'&name='+encodeURIComponent(i)).then(r=>{if(!r.ok)throw new Error(r.status);return r.json()});
-  res.textContent=JSON.stringify(d,null,2)}
- catch(e){res.innerHTML='<span style="color:#ef5350">Error: '+e.message+'</span>'}
+  res.innerHTML=renderIndicator(d)}
+ catch(e){res.innerHTML='<div class="res-ui"><span style="color:#ef5350">Error: '+e.message+'</span></div>'}
 }
 init();
 </script>
