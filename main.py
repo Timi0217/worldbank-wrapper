@@ -190,31 +190,58 @@ async def _wb_get(path: str, params: dict = None) -> list:
 HOME_HTML = """<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>World Bank · Chekk</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>World Bank — Global Development Data</title>
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{background:#0a0a0a;color:#e0e0e0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh;display:flex;justify-content:center;padding:32px 16px}
-.w{max-width:640px;width:100%;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:32px;height:fit-content}
-.hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-.t{font-family:'Courier New',monospace;font-size:28px;font-weight:700;color:#009FDA}
-.st{font-family:'Courier New',monospace;font-size:13px;color:#555;display:flex;align-items:center;gap:6px}
-.st .d{width:8px;height:8px;border-radius:50%;background:#555;transition:background .3s}
-.st .d.on{background:#4CAF50}
-.sub{color:#666;font-size:14px;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,.06)}
-.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px}
-.sc{background:rgba(0,159,218,.06);border:1px solid rgba(0,159,218,.15);border-radius:12px;padding:14px 16px;text-align:center;opacity:0;animation:fi .4s ease forwards}
-.sc:nth-child(1){animation-delay:.1s}.sc:nth-child(2){animation-delay:.15s}.sc:nth-child(3){animation-delay:.2s}
-.sl{color:#009FDA;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px}
-.sv{font-family:'Courier New',monospace;font-size:20px;font-weight:700;color:#fff}
-.sv sub{font-size:12px;color:#888}
-hr.dv{border:none;border-top:1px solid rgba(255,255,255,.06);margin:18px 0}
-.fm{display:flex;gap:10px;margin-bottom:8px}
-.ip{flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:13px 16px;color:#fff;font-family:'Courier New',monospace;font-size:14px;outline:none;transition:border-color .2s}
-.ip:focus{border-color:rgba(0,159,218,.5)}
-.bt{background:#009FDA;color:#fff;border:none;border-radius:10px;padding:13px 18px;font-weight:700;font-size:14px;cursor:pointer;font-family:'Courier New',monospace;white-space:nowrap;transition:opacity .15s}
-.bt:hover{opacity:.85}
-.try{color:#555;font-size:12px;margin-top:4px}.try a{color:#666;text-decoration:none;cursor:pointer;transition:color .15s}.try a:hover{color:#009FDA}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;background:#0a0a0a;color:#e8e8e8;padding:40px 20px;line-height:1.5}
+.container{max-width:680px;margin:0 auto;opacity:0;animation:fadeIn .5s ease forwards}
+@keyframes fadeIn{to{opacity:1}}
+@keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* Header */
+.header-card{background:linear-gradient(135deg,rgba(0,159,218,.4),rgba(0,120,180,.2));border:1px solid rgba(0,159,218,.15);border-radius:20px;padding:28px 28px 0;margin-bottom:16px;overflow:hidden}
+.header-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-icon{width:42px;height:42px;background:linear-gradient(135deg,#009FDA,#0080C0);border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'Courier New',monospace;font-weight:900;font-size:16px;color:#fff;letter-spacing:-1px}
+.brand-text .title{font-size:22px;font-weight:700;color:#fff;letter-spacing:-.5px}
+.brand-text .org{font-size:12px;color:rgba(0,159,218,.8);font-weight:500;letter-spacing:.5px}
+.health-badge{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:6px 14px;font-size:12px;color:#888;backdrop-filter:blur(10px)}
+.health-dot{width:7px;height:7px;background:#555;border-radius:50%;transition:background .3s}
+.health-dot.on{background:#4CAF50;box-shadow:0 0 8px rgba(76,175,80,.4)}
+.tagline{color:#888;font-size:14px;margin-bottom:20px;margin-left:54px}
+
+/* Stats grid */
+.grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:rgba(255,255,255,.04);border-radius:0 0 20px 20px;overflow:hidden;margin:0 -28px}
+.stat{background:#0a0a0a;padding:20px;text-align:center;position:relative;transition:background .2s;opacity:0;animation:slideUp .4s ease forwards}
+.stat:nth-child(1){animation-delay:.1s}
+.stat:nth-child(2){animation-delay:.15s}
+.stat:nth-child(3){animation-delay:.2s}
+.stat:hover{background:rgba(0,159,218,.04)}
+.stat-label{font-size:10px;color:#666;text-transform:uppercase;letter-spacing:1.2px;font-weight:600;margin-bottom:10px}
+.stat-val{font-family:'Courier New',monospace;font-size:28px;font-weight:700;color:#fff;line-height:1;margin-bottom:2px}
+.stat-unit{font-size:13px;color:#555;font-weight:400}
+.stat-meta{font-size:11px;color:#555;margin-top:8px}
+.stat.warm .stat-val{color:#555;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:.6}50%{opacity:.3}}
+
+/* Secondary cards */
+.card{background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:20px 24px;margin-bottom:12px;animation:slideUp .5s ease backwards}
+
+/* Search */
+.search-row{display:flex;gap:8px;margin-bottom:10px}
+.search-input{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:11px 16px;color:#fff;font-size:14px;outline:none;transition:all .2s}
+.search-input:focus{border-color:rgba(0,159,218,.5);background:rgba(255,255,255,.06);box-shadow:0 0 0 3px rgba(0,159,218,.1)}
+.search-input::placeholder{color:#444}
+.search-btn{background:linear-gradient(135deg,#009FDA,#0080C0);color:#fff;border:none;border-radius:10px;padding:11px 20px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap}
+.search-btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,159,218,.3)}
+.quick-links{display:flex;gap:6px;flex-wrap:wrap}
+.quick-link{background:rgba(255,255,255,.04);color:#666;padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;transition:all .15s;border:1px solid transparent;font-family:'Courier New',monospace}
+.quick-link:hover{background:rgba(0,159,218,.1);color:#009FDA;border-color:rgba(0,159,218,.2)}
+.section-label{font-size:10px;color:#555;text-transform:uppercase;letter-spacing:1.5px;font-weight:600;margin-bottom:12px}
+
+/* Results */
 #res{margin-top:14px;display:none}
 .res-ui{padding:16px 18px;background:rgba(0,159,218,.06);border:1px solid rgba(0,159,218,.15);border-radius:10px}
 .res-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
@@ -231,41 +258,104 @@ hr.dv{border:none;border-top:1px solid rgba(255,255,255,.06);margin:18px 0}
 .toggle-raw{margin-top:12px;font-size:12px;color:#666;cursor:pointer;user-select:none;transition:color .15s}
 .toggle-raw:hover{color:#009FDA}
 .raw-json{margin-top:8px;padding:12px;background:rgba(0,0,0,.3);border-radius:8px;font-family:'Courier New',monospace;font-size:11px;line-height:1.5;white-space:pre-wrap;word-break:break-all;max-height:300px;overflow-y:auto;color:#888;display:none}
-@keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-@media(max-width:480px){.stats{grid-template-columns:1fr}.w{padding:20px}.fm{flex-direction:column}}
+
+@media(max-width:480px){
+.grid{grid-template-columns:1fr}
+.search-row{flex-direction:column}
+.brand-text .title{font-size:18px}
+}
 </style>
 </head>
 <body>
-<div class="w">
- <div class="hd"><div class="t">World Bank</div><div class="st"><span class="d" id="dot"></span><span id="stx">connecting...</span></div></div>
- <div class="sub">Global development data &mdash; GDP, poverty, health, education across 200+ countries</div>
- <div class="stats" id="stats">
-  <div class="sc"><div class="sl">GLOBAL GDP</div><div class="sv" id="gdp">...</div></div>
-  <div class="sc"><div class="sl">WORLD POP.</div><div class="sv" id="pop">...</div></div>
-  <div class="sc"><div class="sl">INDICATORS</div><div class="sv">1,400+</div></div>
- </div>
- <hr class="dv">
- <div class="fm">
-  <input class="ip" id="country" placeholder="Nigeria" value="Nigeria">
-  <input class="ip" id="indicator" placeholder="gdp_growth" value="gdp_growth">
-  <button class="bt" onclick="fetchD()">&rarr;</button>
- </div>
- <div class="try">Try: <a onclick="ts('Kenya','gdp_growth')">Kenya GDP growth</a> &middot; <a onclick="ts('India','population')">India population</a> &middot; <a onclick="ts('Brazil','inflation')">Brazil inflation</a> &middot; <a onclick="ts('Nigeria','literacy_rate')">Nigeria literacy</a></div>
- <div id="res"></div>
+<div class="container">
+
+<div class="header-card">
+<div class="header-row">
+<div class="brand">
+<div class="brand-icon">WB</div>
+<div class="brand-text">
+<div class="title">World Bank</div>
+<div class="org">Global Development Data</div>
+</div>
+</div>
+<div class="health-badge"><span class="health-dot" id="dot"></span><span id="health-text">checking...</span></div>
+</div>
+<div class="tagline">1,400+ development indicators across 200+ countries</div>
+<div class="grid" id="grid">
+<div class="stat warm"><div class="stat-label">GLOBAL GDP</div><div class="stat-val" id="gdp">...</div><div class="stat-meta">Loading...</div></div>
+<div class="stat warm"><div class="stat-label">WORLD POP.</div><div class="stat-val" id="pop">...</div><div class="stat-meta">Loading...</div></div>
+<div class="stat"><div class="stat-label">INDICATORS</div><div class="stat-val">1,400<span class="stat-unit">+</span></div><div class="stat-meta">Available</div></div>
+</div>
+</div>
+
+<div class="card" style="animation-delay:.15s">
+<div class="section-label">Search Indicators</div>
+<div class="search-row">
+<input type="text" class="search-input" id="country" placeholder="Country (e.g., Nigeria, Kenya, India)" value="Nigeria">
+<input type="text" class="search-input" id="indicator" placeholder="Indicator (e.g., gdp_growth, inflation)" value="gdp_growth">
+<button class="search-btn" onclick="fetchD()">Fetch &rarr;</button>
+</div>
+<div class="quick-links">
+<span style="color:#444;font-size:11px;margin-right:2px">Try:</span>
+<span class="quick-link" onclick="ts('Kenya','gdp_growth')">Kenya GDP growth</span>
+<span class="quick-link" onclick="ts('India','population')">India population</span>
+<span class="quick-link" onclick="ts('Brazil','inflation')">Brazil inflation</span>
+<span class="quick-link" onclick="ts('Nigeria','literacy_rate')">Nigeria literacy</span>
+</div>
+<div id="res"></div>
+</div>
+
 </div>
 <script>
 function fmt(n){if(n==null)return'--';if(n>=1e12)return'$'+(n/1e12).toFixed(1)+'T';if(n>=1e9)return(n/1e9).toFixed(1)+'B';if(n>=1e6)return(n/1e6).toFixed(1)+'M';return n.toLocaleString('en-US',{maximumFractionDigits:1})}
+
 async function init(){
  const t0=Date.now();
- try{const d=await fetch('/dashboard').then(r=>r.json());
+ try{
+  await fetch('/health');
   const ms=Date.now()-t0;
   document.getElementById('dot').classList.add('on');
-  document.getElementById('stx').textContent='online \\u00B7 '+ms+'ms';
-  if(d.gdp&&d.gdp.value){document.getElementById('gdp').innerHTML=fmt(parseFloat(d.gdp.value))}else{document.getElementById('gdp').textContent='--'}
-  if(d.population&&d.population.value){document.getElementById('pop').textContent=fmt(parseFloat(d.population.value))}else{document.getElementById('pop').textContent='--'}
- }catch(e){document.getElementById('stx').textContent='offline';document.getElementById('gdp').textContent='--';document.getElementById('pop').textContent='--'}
+  document.getElementById('health-text').textContent='online \\u00b7 '+ms+'ms';
+ }catch(e){
+  document.getElementById('health-text').textContent='offline';
+ }
+
+ try{
+  const d=await fetch('/dashboard').then(r=>r.json());
+  const gdpEl=document.getElementById('gdp');
+  const popEl=document.getElementById('pop');
+  const gdpStat=gdpEl.parentElement;
+  const popStat=popEl.parentElement;
+
+  if(d.gdp&&d.gdp.value){
+   gdpEl.innerHTML=fmt(parseFloat(d.gdp.value));
+   gdpStat.classList.remove('warm');
+   const meta=gdpStat.querySelector('.stat-meta');
+   if(meta)meta.textContent=d.gdp.year||'';
+  }else{
+   gdpEl.textContent='--';
+   gdpStat.classList.remove('warm');
+  }
+
+  if(d.population&&d.population.value){
+   popEl.textContent=fmt(parseFloat(d.population.value));
+   popStat.classList.remove('warm');
+   const meta=popStat.querySelector('.stat-meta');
+   if(meta)meta.textContent=d.population.year||'';
+  }else{
+   popEl.textContent='--';
+   popStat.classList.remove('warm');
+  }
+ }catch(e){
+  document.getElementById('gdp').textContent='--';
+  document.getElementById('pop').textContent='--';
+  document.getElementById('gdp').parentElement.classList.remove('warm');
+  document.getElementById('pop').parentElement.classList.remove('warm');
+ }
 }
+
 function ts(c,i){document.getElementById('country').value=c;document.getElementById('indicator').value=i;fetchD()}
+
 function fmtVal(v){if(v==null)return'--';const n=parseFloat(v);if(isNaN(n))return v;if(Math.abs(n)>=1e12)return(n/1e12).toFixed(2)+'T';if(Math.abs(n)>=1e9)return(n/1e9).toFixed(2)+'B';if(Math.abs(n)>=1e6)return(n/1e6).toFixed(1)+'M';if(Math.abs(n)>=1e3)return n.toLocaleString('en-US',{maximumFractionDigits:2});return n.toFixed(2)}
 function renderIndicator(d){
  const obs=d.observations||[];if(!obs.length)return'<div class="res-ui"><div style="color:#888;text-align:center;padding:20px">No data available</div></div>';
@@ -305,6 +395,7 @@ async function fetchD(){
   res.innerHTML=renderIndicator(d)}
  catch(e){res.innerHTML='<div class="res-ui"><span style="color:#ef5350">Error: '+e.message+'</span></div>'}
 }
+
 init();
 </script>
 </body></html>"""
